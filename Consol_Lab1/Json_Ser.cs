@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Consol_Lab1
 {
-    class Class1
+    class Json_Ser
     {
     }
 }

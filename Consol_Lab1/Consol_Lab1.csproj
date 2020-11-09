@@ -43,8 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Json_Ser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Ser.cs" />
+    <Compile Include="Xml_Ser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
