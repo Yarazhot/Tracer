@@ -9,13 +9,12 @@ using System.Reflection;
 
 namespace tracer_lib
 {
-    public class Tracer
+    public class Tracer: ITracer
     {
-        public List<Thread_Info> threads;
+        public List<Thread_Info> threads = new List<Thread_Info>();
         private Dictionary<Thread_Info, Stack<Method_Info>> t_stacks = new Dictionary<Thread_Info, Stack<Method_Info>>();
-        //private Dictionary<MethodBase, Method_Info> m_infos = new Dictionary<MethodBase, Method_Info>;
         private object locker = new object();
-        void StartTrace()
+        public void StartTrace()
         {
             int cur_t_id;
             Thread_Info cur_t_inf;
@@ -24,10 +23,11 @@ namespace tracer_lib
                 //найти поток с таким айди или создать новый
                 if ((cur_t_inf = FindThrById(cur_t_id = Thread.CurrentThread.ManagedThreadId)) == null)
                 {
-                    Thread_Info new_t_inf = new Thread_Info(cur_t_id);
-                    threads.Add(new_t_inf);
-                    t_stacks.Add(new_t_inf, new Stack<Method_Info>());
-                    new_t_inf.time = "0";
+                    cur_t_inf = new Thread_Info(cur_t_id);
+                    cur_t_inf.methods = new List<Method_Info>();
+                    threads.Add(cur_t_inf);
+                    t_stacks.Add(cur_t_inf, new Stack<Method_Info>());
+                    cur_t_inf.time = "0";
                 }
 
                 Stack<Method_Info> cur_t_stack;
@@ -45,7 +45,7 @@ namespace tracer_lib
             }
             
         }
-        void StopTrace()
+        public void StopTrace()
         {
             Thread_Info cur_t_inf;
             lock (locker)
@@ -61,15 +61,18 @@ namespace tracer_lib
                 cur_m_inf.time = Convert.ToString(cur_m_inf.stopwatch.ElapsedMilliseconds);
                 cur_t_inf.time = Convert.ToString(Convert.ToInt32(cur_t_inf.time) + cur_m_inf.stopwatch.ElapsedMilliseconds);
                 Method_Info parent_m_inf;
-                if ((parent_m_inf = cur_t_stack.Peek()) != null)
+                if (cur_t_stack.Count != 0)
+                {
+                    parent_m_inf = cur_t_stack.Peek();
                     parent_m_inf.methods.Add(cur_m_inf);
+                }
                 else
                     cur_t_inf.methods.Add(cur_m_inf);
             }
         }
-        public List<Thread_Info> GetTraceResult()
+        public TraceResult GetTraceResult()
         {
-            return threads;
+            return new TraceResult(threads);
         }
         private Thread_Info FindThrById(int id)
         {
@@ -81,7 +84,7 @@ namespace tracer_lib
         private MethodBase GetCurrentMethod()
         {
             var st = new StackTrace();
-            var sf = st.GetFrame(1);
+            var sf = st.GetFrame(2);
             return sf.GetMethod();
         }
     }
